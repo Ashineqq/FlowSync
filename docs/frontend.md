@@ -4,18 +4,19 @@
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| React | 18.x | UI 框架 |
-| TypeScript | 5.x | 类型系统 |
+| React | 19.x | UI 框架 |
+| TypeScript | 6.x | 类型系统 |
 | Vite | 8.x | 构建工具 |
 | Tailwind CSS | 4.x | 样式方案 |
 | shadcn/ui (Base UI) | latest | UI 组件库 |
-| React Router | 6.x | 路由 |
+| React Router | 7.x | 路由 |
 | Axios | latest | HTTP 客户端 |
 | react-hook-form | latest | 表单管理 |
 | zod | latest | 表单校验 |
 | sonner | latest | Toast 通知 |
 | date-fns | latest | 日期格式化 |
 | react-day-picker | latest | 日历组件 |
+| framer-motion | 12.x | 动画引擎 |
 
 ## 2. 项目结构
 
@@ -30,7 +31,7 @@ frontend/src/
 │   ├── summary.ts
 │   ├── overview.ts
 │   ├── user.ts
-│   └── ai.ts             # 包含流式请求
+│   └── ai.ts             # 包含流式请求（带 API Key header）
 ├── components/
 │   ├── ui/               # shadcn/ui 组件（Base UI 版本）
 │   │   ├── button.tsx
@@ -45,24 +46,39 @@ frontend/src/
 │   │   ├── separator.tsx
 │   │   ├── calendar.tsx   # react-day-picker
 │   │   ├── popover.tsx    # Base UI Popover
+│   │   ├── tooltip.tsx    # Base UI Tooltip
 │   │   └── field.tsx      # 表单字段组件
 │   ├── layout/
 │   │   ├── Sidebar.tsx
 │   │   └── Header.tsx
 │   └── common/
+│       ├── ConfirmDialog.tsx  # 通用确认弹窗
 │       ├── StatusBadge.tsx
 │       ├── PriorityBadge.tsx
-│       └── DatePicker.tsx
+│       ├── DatePicker.tsx
+│       └── TableEmptyRow.tsx
 ├── hooks/
 │   └── useAuth.tsx        # React Context 认证状态
-├── pages/                 # 页面组件
+├── pages/
+│   ├── login/             # 登录页（拆分为 index + animations）
+│   │   ├── index.tsx
+│   │   └── animations.tsx  # 鼠标流光动画 hook
+│   ├── Overview.tsx
+│   ├── ProjectList.tsx
+│   ├── TaskBreakdown.tsx
+│   ├── TaskList.tsx
+│   ├── TaskLogList.tsx
+│   ├── SummaryList.tsx
+│   ├── MemberList.tsx
+│   └── Profile.tsx        # 含 API Key 配置 Card
 ├── store/
-│   └── taskBreakdown.ts   # AI 任务拆解流式状态管理
+│   └── taskBreakdown.ts   # AI 任务拆解流式状态管理（含 API Key header）
 ├── types/
 │   ├── index.ts           # 所有类型定义
 │   └── api.ts             # ApiResponse 类型
 ├── lib/
-│   └── utils.ts           # cn() 工具函数
+│   ├── utils.ts           # cn() 工具函数
+│   └── api-key.ts         # localStorage API Key 读写 + 掩码
 ├── App.tsx
 ├── main.tsx
 └── index.css              # Tailwind CSS 4 配置
@@ -350,20 +366,141 @@ toast.error('操作失败', { description: '详细信息' });
 
 **解决方案：** 重命名为 `.tsx`。
 
-## 10. 启动方式
+## 10. 登录页流光动画
+
+登录页使用 Framer Motion 实现鼠标跟随流光效果，拆分为两个文件：
+
+### 目录结构
+
+```
+pages/login/
+├── index.tsx        # 登录页主组件（表单 + 布局）
+└── animations.tsx   # 动画 hook + 可复用组件
+```
+
+### 核心实现
+
+```tsx
+// animations.tsx
+import { motion, useSpring, useMotionTemplate } from 'framer-motion';
+
+export function useMouseGlow() {
+  const outerX = useSpring(50, { stiffness: 80, damping: 30 });
+  const outerY = useSpring(50, { stiffness: 80, damping: 30 });
+  const innerX = useSpring(50, { stiffness: 160, damping: 20 });
+  const innerY = useSpring(50, { stiffness: 160, damping: 20 });
+
+  const outerGlow = useMotionTemplate`radial-gradient(700px ...)`;
+  const innerGlow = useMotionTemplate`radial-gradient(280px ...)`;
+  const borderGlow = useMotionTemplate`radial-gradient(350px ...)`;
+
+  return { containerRef, outerGlow, innerGlow, borderGlow, handleMouseMove };
+}
+```
+
+### 关键技巧
+
+- **双层弹簧**：外层 `stiffness:80` 慢速跟随（氛围），内层 `stiffness:160` 快速跟随（高亮核心）
+- **`useMotionTemplate`**：Framer Motion v12 推荐的模板字符串方式，替代 `useTransform` 多值数组写法
+- **`backgroundImage` 而非 `background`**：避免 MotionValue 在 v12 中更新失败
+- **卡片边框 `padding: 1px` 技法**：外层 motion.div 作为渐变边框，内层白色 Card 覆盖中心区域
+
+### 踩坑记录
+
+详见 [skills/motion/SKILL.md](../skills/motion/SKILL.md)。
+
+## 11. API Key 管理
+
+DeepSeek API Key 改为前端管理，不再从服务端环境变量读取。
+
+### 存储
+
+```typescript
+// lib/api-key.ts
+const STORAGE_KEY = 'deepseek_api_key';
+
+export function getApiKey(): string { return localStorage.getItem(STORAGE_KEY) || ''; }
+export function setApiKey(key: string): void { localStorage.setItem(STORAGE_KEY, key); }
+export function removeApiKey(): void { localStorage.removeItem(STORAGE_KEY); }
+export function hasApiKey(): boolean { return getApiKey().length > 0; }
+export function maskApiKey(key: string): string { return '••••••••' + key.slice(-4); }
+```
+
+### 发送方式
+
+前端请求时通过请求头传递：
+
+```typescript
+// store/taskBreakdown.ts（流式请求）
+const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+const apiKey = getApiKey();
+if (apiKey) {
+  headers['x-deepseek-api-key'] = apiKey;
+}
+```
+
+### 个人信息页面
+
+在「修改密码」Card 下方新增「API Key 配置」Card：
+- 未配置时：显示输入框 + 保存按钮
+- 已配置时：显示「已配置」Badge + 掩码 Key（`••••••••xxxx`）+ 修改/移除按钮
+- 格式校验：必须以 `sk-` 开头
+
+### AI 拆解页提示
+
+未配置 API Key 时：
+- 「AI 拆解」按钮**置灰不可点击**
+- 按钮旁显示红色 `?` 圆圈（shadcn Tooltip 组件）
+- 鼠标悬停提示「请在个人信息中配置 DeepSeek API Key」
+
+## 12. 通用 ConfirmDialog
+
+使用 shadcn Dialog 组件封装，统一替换所有 `confirm()` 调用：
+
+```tsx
+<ConfirmDialog
+  open={deleteConfirmId !== null}
+  onOpenChange={(open) => { if (!open) setDeleteConfirmId(null); }}
+  title="确认删除"
+  description="确定要删除该任务吗？此操作不可撤销。"
+  confirmText="删除"
+  variant="destructive"
+  onConfirm={confirmDelete}
+/>
+```
+
+已替换的页面：`TaskList.tsx`、`ProjectList.tsx`。
+
+## 13. 部署配置
+
+前端部署在 **Vercel**，API 请求通过 rewrite 代理到后端：
+
+```json
+// vercel.json
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://your-backend.onrender.com/api/:path*"
+    }
+  ]
+}
+```
+
+开发环境通过 Vite proxy 转发（`vite.config.ts`）。
+
+## 14. 启动方式
 
 ```bash
 cd frontend
-
 npm install
-npx shadcn@latest init  # 选择 Tailwind v4
-npx shadcn@latest add button input table dialog select textarea card badge tabs separator
-npm install react-hook-form @hookform/resolvers zod sonner date-fns react-day-picker
 npm run dev
 # 启动在 http://localhost:5173
 ```
 
-## 11. 开发规范
+API 请求通过 Vite proxy 转发到后端 `http://localhost:5000`（`vite.config.ts` 中配置）。
+
+## 15. 开发规范
 
 1. **组件命名：** PascalCase（`ProjectList.tsx`）
 2. **文件组织：** 页面在 `pages/`，通用组件在 `components/common/`，UI 组件在 `components/ui/`

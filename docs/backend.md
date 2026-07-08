@@ -4,20 +4,21 @@
 
 | 技术 | 版本 | 用途 |
 |------|------|------|
-| Python | 3.14 | 运行环境 |
+| Python | 3.12 | 运行环境 |
 | Flask | 3.x | Web 框架 |
 | Flask-SQLAlchemy | 3.x | ORM |
 | Flask-CORS | latest | 跨域处理 |
-| psycopg (v3) | 3.1.18 | PostgreSQL 驱动 |
+| psycopg[binary] (v3) | >=3.2 | PostgreSQL 驱动 |
 | openai | latest | DeepSeek API 调用 |
 | httpx | latest | HTTP 客户端（绕过代理问题） |
+| gunicorn | 23.x | 生产级 WSGI 服务器 |
 
 ## 2. 项目结构
 
 ```
 backend/
 ├── app/
-│   ├── __init__.py            # Flask 应用工厂
+│   ├── __init__.py            # Flask 应用工厂 + 建表 + 种子数据
 │   ├── common/
 │   │   ├── __init__.py
 │   │   ├── api_response.py    # 统一响应格式
@@ -52,7 +53,8 @@ backend/
 │   └── dto/
 │       └── ...
 ├── config.py                  # 配置文件
-├── run.py                     # 启动入口 + 种子数据
+├── Procfile                   # Render/gunicorn 启动配置
+├── run.py                     # 本地开发入口（从 app 导入）
 └── requirements.txt
 ```
 
@@ -203,7 +205,19 @@ def get_all(current_user_id=None, is_leader=True):
 - 后端通过 `Response(generate(), mimetype='text/event-stream')` 返回
 - 事件类型：`thinking`（思维链）、`chunk`（最终回答）、`done`（完成）、`error`（错误）
 
-### 7.3 流式输出的关键坑
+### 7.3 API Key 来源
+
+**当前方案：** API Key 不再从环境变量读取。前端在「个人信息」页面将 Key 存入 `localStorage`，请求时通过请求头 `x-deepseek-api-key` 发送。
+
+后端优先读取请求头中的 Key：
+
+```python
+api_key = request.headers.get('x-deepseek-api-key', '')
+```
+
+如请求头为空，直接返回错误，不再 fallback 到环境变量。
+
+### 7.4 流式输出的关键坑
 
 **Flask 生成器的上下文丢失问题：**
 
@@ -222,7 +236,7 @@ def generate():
     # 不再需要 current_app
 ```
 
-### 7.4 openai SDK 版本兼容
+### 7.5 openai SDK 版本兼容
 
 **问题：** `reasoning_effort` 作为顶层参数不被旧版 SDK 支持。
 
@@ -269,14 +283,24 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # 设置环境变量
-export DEEPSEEK_API_KEY=sk-xxx
 export DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/flowsync
+# 注意：DEEPSEEK_API_KEY 不再从环境变量读取，用户在前端页面中配置
 
 # 启动
 python run.py
 ```
 
 启动时自动建表和种子数据（leader/member1/member2 三个用户）。
+
+### 9.1 部署
+
+项目部署使用 **Render（后端 + PostgreSQL）+ Vercel（前端）**。
+
+部署配置文件：
+- `Procfile` — gunicorn 启动入口 `app:app`
+- `Dockerfile.fly` — 备用（Fly.io 用）
+
+详见 [skills/deployment/SKILL.md](../skills/deployment/SKILL.md)。
 
 ## 10. 开发规范
 
