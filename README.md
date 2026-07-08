@@ -5,6 +5,7 @@
 - **前端**：React + TypeScript + Vite + shadcn/ui + Tailwind CSS
 - **后端**：Python Flask + SQLAlchemy + PostgreSQL
 - **AI 功能**：接入 DeepSeek API，支持 AI 任务拆解
+- **部署**：前端 Vercel + 后端 Render + 数据库 Render PostgreSQL
 
 ---
 
@@ -13,6 +14,8 @@
 - Node.js >= 18
 - Python >= 3.10
 - PostgreSQL（默认连接 `localhost:5432`，数据库名 `flowsync`）
+
+> 本项目使用 `psycopg[binary]`（psycopg 3）作为 PostgreSQL 驱动，**不要**安装 `psycopg2`。
 
 ---
 
@@ -59,14 +62,27 @@ npm run dev
 
 ---
 
+## 🔧 部署
+
+项目使用 **Vercel（前端）+ Render（后端 + PostgreSQL）** 部署。
+
+| 平台 | 用途 | 费用 |
+|------|------|------|
+| [Vercel](https://vercel.com) | 前端 SPA | 免费 |
+| [Render](https://render.com) | 后端 Flask + PostgreSQL | 免费（休眠） |
+
+详细部署步骤请参考 [skills/deployment/SKILL.md](skills/deployment/SKILL.md)。
+
+---
+
 ## 🗑️ 清空业务数据
 
 需要重新实验时，执行以下命令可清空所有业务数据（**保留成员/用户数据不影响登录**）：
 
 ```bash
 cd backend && venv/bin/python -c "
-from app import create_app, db
-app = create_app()
+from app import db
+from app.models.user import User
 with app.app_context():
     db.session.execute(db.text('DELETE FROM task_log'))
     db.session.execute(db.text('DELETE FROM task_summary'))
@@ -85,22 +101,33 @@ with app.app_context():
 
 ```
 flowsync/
-├── frontend/                 # React 前端
-│   └── src/
-│       ├── api/              # API 请求封装（axios）
-│       ├── components/       # 通用组件
-│       │   ├── common/       # 公共组件
-│       │   └── ui/           # shadcn UI 组件
-│       ├── hooks/            # 自定义 Hooks
-│       ├── pages/            # 页面组件
-│       ├── store/            # 状态管理
-│       └── types/            # TypeScript 类型
+├── frontend/                    # React 前端
+│   ├── src/
+│   │   ├── api/                 # API 请求封装
+│   │   ├── components/          # 通用组件
+│   │   │   ├── common/          # 公共组件
+│   │   │   ├── ui/              # shadcn UI 组件
+│   │   │   └── login/           # 登录页（拆分为 index + animations）
+│   │   ├── hooks/               # 自定义 Hooks
+│   │   ├── lib/                 # 工具函数（含 api-key.ts）
+│   │   ├── pages/               # 页面组件
+│   │   ├── store/               # 状态管理
+│   │   └── types/               # TypeScript 类型
+│   └── vercel.json              # Vercel 部署配置（API rewrite）
 │
-├── backend/                  # Flask 后端
-│   └── app/
-│       ├── controllers/      # 路由控制器（蓝图）
-│       ├── models/           # ORM 模型
-│       └── services/         # 业务逻辑层
+├── backend/                     # Flask 后端
+│   ├── app/
+│   │   ├── __init__.py          # 应用工厂 + 建表 + 种子数据
+│   │   ├── controllers/         # 路由控制器（蓝图）
+│   │   ├── models/              # ORM 模型
+│   │   └── services/            # 业务逻辑层
+│   ├── Procfile                 # Render/gunicorn 启动配置
+│   ├── run.py                   # 本地开发入口
+│   └── requirements.txt
+│
+├── skills/                      # 项目技能文档
+│   ├── motion/SKILL.md          # Framer Motion 动画调试指南
+│   └── deployment/SKILL.md      # 全栈部署指南
 │
 └── README.md
 ```
@@ -113,5 +140,34 @@ flowsync/
 |------|------|
 | 后端启动 | `cd backend && venv/bin/python run.py` |
 | 前端启动 | `cd frontend && npm run dev` |
-| 清空数据 | 见上方 [清空所有表数据](#-清空所有表数据) |
+| 清空数据 | 见上方 [清空业务数据](#-清空业务数据) |
 | 前端编译检查 | `cd frontend && npx tsc --noEmit` |
+| 前端构建 | `cd frontend && npm run build` |
+
+---
+
+## ⚠️ 开发注意事项
+
+### DATABASE_URL 格式
+
+本项目使用 `psycopg[binary]`（psycopg 3），数据库连接串必须使用 `postgresql+psycopg://` 前缀：
+
+```bash
+# ✅ 正确
+export DATABASE_URL=postgresql+psycopg://user:pass@localhost:5432/flowsync
+
+# ❌ 错误（会找 psycopg2，未安装）
+export DATABASE_URL=postgresql://user:pass@localhost:5432/flowsync
+```
+
+### 本地 PostgreSQL 没有启动？
+
+如果本地没有 PostgreSQL，可以使用 Render 提供的 External Database URL 远程连接：
+
+```bash
+export DATABASE_URL=postgresql+psycopg://user:pass@dpg-xxx.singapore-postgres.render.com:5432/dbname
+```
+
+### API Key 配置
+
+DeepSeek API Key 不再从环境变量读取（已在生产环境中移除 fallback），统一在页面的「个人信息 → API Key 配置」中设置，存储在浏览器 localStorage。
