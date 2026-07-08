@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import Login from '@/pages/Login';
+import Login from '@/pages/login';
 import Overview from '@/pages/Overview';
 import ProjectList from '@/pages/ProjectList';
 import TaskBreakdown from '@/pages/TaskBreakdown';
