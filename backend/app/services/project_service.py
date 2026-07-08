@@ -2,6 +2,8 @@ from datetime import datetime
 from app import db
 from app.models.project import ProjectInfo
 from app.models.task import TaskInfo
+from app.models.task_log import TaskLog
+from app.models.task_summary import TaskSummary
 
 
 class ProjectService:
@@ -58,6 +60,19 @@ class ProjectService:
         project = ProjectInfo.query.get(project_id)
         if not project:
             return False
+
+        # 删除该项目的所有总结
+        TaskSummary.query.filter_by(project_id=project_id).delete()
+
+        # 获取该项目下所有任务 ID
+        task_ids = [t.id for t in TaskInfo.query.filter_by(project_id=project_id).all()]
+
+        if task_ids:
+            # 删除这些任务的进度记录
+            TaskLog.query.filter(TaskLog.task_id.in_(task_ids)).delete(synchronize_session=False)
+            # 删除这些任务
+            TaskInfo.query.filter(TaskInfo.id.in_(task_ids)).delete(synchronize_session=False)
+
         db.session.delete(project)
         db.session.commit()
         return True

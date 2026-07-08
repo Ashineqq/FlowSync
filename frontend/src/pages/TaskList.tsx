@@ -27,6 +27,7 @@ import { DatePicker } from '@/components/common/DatePicker';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { TableEmptyRow } from '@/components/common/TableEmptyRow';
 
 const statusItems = [
   { label: '未开始', value: '未开始' },
@@ -220,6 +221,9 @@ export default function TaskList() {
           </TableRow>
         </TableHeader>
         <TableBody>
+          {filteredTasks.length === 0 && (
+            <TableEmptyRow colSpan={8} message="暂无任务" />
+          )}
           {filteredTasks.map((task) => (
             <TableRow key={task.id}>
               <TableCell className="font-medium">{task.title}</TableCell>

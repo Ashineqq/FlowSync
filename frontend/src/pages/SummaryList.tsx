@@ -23,6 +23,7 @@ import { Field, FieldLabel, FieldError, FieldGroup } from '@/components/ui/field
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
+import { TableEmptyRow } from '@/components/common/TableEmptyRow';
 
 const summaryTypeItems = [
   { label: '阶段总结', value: '阶段总结' },
@@ -123,6 +124,9 @@ export default function SummaryList() {
           </TableRow>
         </TableHeader>
         <TableBody>
+          {summaries.length === 0 && (
+            <TableEmptyRow colSpan={6} message="暂无总结" />
+          )}
           {summaries.map((summary) => (
             <TableRow key={summary.id}>
               <TableCell className="font-medium">{summary.projectName}</TableCell>

@@ -1,6 +1,8 @@
 from datetime import datetime
 from app import db
 from app.models.task import TaskInfo
+from app.models.task_log import TaskLog
+from app.models.task_summary import TaskSummary
 
 
 class TaskService:
@@ -59,6 +61,18 @@ class TaskService:
         task = TaskInfo.query.get(task_id)
         if not task:
             return False
+
+        # 删除该任务的总结和进度记录
+        TaskSummary.query.filter_by(task_id=task_id).delete()
+        TaskLog.query.filter_by(task_id=task_id).delete()
+
+        # 删除子任务（parent_id 指向该任务的任务）
+        subtask_ids = [t.id for t in TaskInfo.query.filter_by(parent_id=task_id).all()]
+        if subtask_ids:
+            TaskLog.query.filter(TaskLog.task_id.in_(subtask_ids)).delete(synchronize_session=False)
+            TaskSummary.query.filter(TaskSummary.task_id.in_(subtask_ids)).delete(synchronize_session=False)
+            TaskInfo.query.filter(TaskInfo.id.in_(subtask_ids)).delete(synchronize_session=False)
+
         db.session.delete(task)
         db.session.commit()
         return True

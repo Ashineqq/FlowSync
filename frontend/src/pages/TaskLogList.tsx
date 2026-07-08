@@ -22,6 +22,7 @@ import {
 import { Field, FieldLabel, FieldError, FieldGroup } from '@/components/ui/field';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
+import { TableEmptyRow } from '@/components/common/TableEmptyRow';
 
 const logSchema = z.object({
   taskId: z.string().min(1, '请选择任务'),
@@ -130,6 +131,9 @@ export default function TaskLogList() {
           </TableRow>
         </TableHeader>
         <TableBody>
+          {filteredLogs.length === 0 && (
+            <TableEmptyRow colSpan={5} message="暂无进度" />
+          )}
           {filteredLogs.map((log) => (
             <TableRow key={log.id}>
               <TableCell className="font-medium">{log.taskTitle}</TableCell>

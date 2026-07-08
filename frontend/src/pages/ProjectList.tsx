@@ -26,6 +26,7 @@ import { DatePicker } from '@/components/common/DatePicker';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { TableEmptyRow } from '@/components/common/TableEmptyRow';
 
 const statusItems = [
   { label: '未开始', value: '未开始' },
@@ -175,6 +176,9 @@ export default function ProjectList() {
           </TableRow>
         </TableHeader>
         <TableBody>
+          {projects.length === 0 && (
+            <TableEmptyRow colSpan={isLeader ? 8 : 7} message="暂无项目" />
+          )}
           {projects.map((project) => (
             <TableRow key={project.id}>
               <TableCell className="font-medium">{project.name}</TableCell>
