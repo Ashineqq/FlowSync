@@ -1,3 +1,5 @@
+import { getApiKey } from '@/lib/api-key';
+
 type Listener = () => void;
 type StreamStatus = 'idle' | 'streaming' | 'done' | 'error';
 
@@ -80,9 +82,16 @@ export async function startStream(projectId: string, data: { projectName: string
   const url = `/api/ai/task-plan/stream?currentUserId=${userId}`;
 
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = getApiKey();
+    if (apiKey) {
+      headers['x-deepseek-api-key'] = apiKey;
+    }
+    console.log('[Store] API Key header:', apiKey ? `已添加 (长度 ${apiKey.length})` : '未配置');
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(data),
       signal: abortController.signal,
     });

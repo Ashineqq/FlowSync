@@ -19,6 +19,8 @@ import { Field, FieldLabel, FieldGroup } from '@/components/ui/field';
 import PriorityBadge from '@/components/common/PriorityBadge';
 import { Wand2, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { hasApiKey } from '@/lib/api-key';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 export default function TaskBreakdown() {
   const { user } = useAuth();
@@ -133,10 +135,22 @@ export default function TaskBreakdown() {
                 <FieldLabel>补充说明</FieldLabel>
                 <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="请输入补充说明（可选）" />
               </Field>
-              <Button type="submit" disabled={!selectedProjectId || !goal || isStreaming}>
-                <Wand2 className="h-4 w-4 mr-2" />
-                {isStreaming ? 'AI 分析中...' : 'AI 拆解'}
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button type="submit" disabled={!selectedProjectId || !goal || isStreaming || !hasApiKey()}>
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  {isStreaming ? 'AI 分析中...' : 'AI 拆解'}
+                </Button>
+                {!hasApiKey() && (
+                  <Tooltip>
+                    <TooltipTrigger className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold leading-none cursor-help">
+                      ?
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      请在「个人信息」中配置 DeepSeek API Key 后使用 AI 拆解功能
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
             </FieldGroup>
           </form>
         </CardContent>

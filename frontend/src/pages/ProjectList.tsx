@@ -46,8 +46,14 @@ const projectSchema = z.object({
   status: z.string().min(1, '请选择状态'),
   priority: z.string().min(1, '请选择优先级'),
   ownerId: z.string().min(1, '请选择负责人'),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.string().min(1, '请选择开始日期'),
+  endDate: z.string().min(1, '请选择结束日期'),
+}).refine((data) => {
+  if (!data.startDate || !data.endDate) return true;
+  return data.endDate >= data.startDate;
+}, {
+  message: '结束日期不能早于开始日期',
+  path: ['endDate'],
 });
 
 type ProjectForm = z.infer<typeof projectSchema>;
@@ -304,20 +310,22 @@ export default function ProjectList() {
                 <Controller
                   name="startDate"
                   control={form.control}
-                  render={({ field }) => (
-                    <Field>
-                      <FieldLabel>开始日期</FieldLabel>
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel required>开始日期</FieldLabel>
                       <DatePicker value={field.value} onChange={field.onChange} placeholder="选择开始日期" />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
                 />
                 <Controller
                   name="endDate"
                   control={form.control}
-                  render={({ field }) => (
-                    <Field>
-                      <FieldLabel>结束日期</FieldLabel>
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel required>结束日期</FieldLabel>
                       <DatePicker value={field.value} onChange={field.onChange} placeholder="选择结束日期" />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
                 />

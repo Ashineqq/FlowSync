@@ -1,3 +1,4 @@
+import { getApiKey } from '@/lib/api-key';
 import request from './request';
 
 export function getTaskSuggestion(data: {
@@ -37,9 +38,20 @@ export async function streamTaskPlan(
   const userId = userStr ? JSON.parse(userStr).id : '';
   const url = `/api/ai/task-plan/stream?currentUserId=${userId}`;
 
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const apiKey = getApiKey();
+  const hasKey = !!apiKey;
+  console.log('[AI Stream] 前端 API Key:', hasKey ? `已找到 (长度 ${apiKey.length})` : '未配置 (localStorage 中无 key)');
+  if (hasKey) {
+    headers['x-deepseek-api-key'] = apiKey;
+    console.log('[AI Stream] 已添加 x-deepseek-api-key 请求头');
+  } else {
+    console.log('[AI Stream] 未发送 API Key 请求头，依赖后端环境变量');
+  }
+
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(data),
   });
 

@@ -52,11 +52,13 @@ def stream_task_plan():
         return ApiResponse.error("项目名称和目标不能为空")
 
     # 在请求上下文中捕获所有配置
-    api_key = current_app.config.get('DEEPSEEK_API_KEY', '')
+    # 只读取请求头中的 API Key（不从环境变量读取）
+    api_key = request.headers.get('x-deepseek-api-key', '')
+    print(f"[AI Stream] Key 来源: 请求头 x-deepseek-api-key {'有值 (长度=' + str(len(api_key)) + ')' if api_key else '空'}")
     base_url = current_app.config.get('DEEPSEEK_BASE_URL', '')
     model = current_app.config.get('DEEPSEEK_MODEL', '')
 
-    print(f"[AI Stream] 模型: {model}, API Key: {api_key[:8]}...{api_key[-4:] if len(api_key) > 12 else '(empty)'}")
+    print(f"[AI Stream] 模型: {model}")
 
     if not api_key:
         return ApiResponse.error("未配置 DEEPSEEK_API_KEY")
