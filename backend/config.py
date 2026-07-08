@@ -5,7 +5,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'flowsync-secret-key')
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL',
-        'postgresql+psycopg://test:postgres@localhost:5432/flowsync'
+        'postgresql://test:postgres@localhost:5432/flowsync'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEEPSEEK_API_KEY = os.environ.get('DEEPSEEK_API_KEY', '')
