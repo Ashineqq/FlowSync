@@ -1,37 +1,35 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { login as loginApi } from '@/api/auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Field, FieldLabel, FieldError, FieldGroup } from '@/components/ui/field';
-import { motion } from 'framer-motion';
-import { useMouseGlow, AmbientGlow, GridOverlay } from './animations';
+import KineticGrid from '@/components/common/KineticGrid';
+import TiltedCard from '@/components/ui/tiltedCard';
+import FrontFace from './FrontFace';
+import BackFace from './BackFace';
+import type { LoginFormData } from './FrontFace';
 
 const loginSchema = z.object({
   username: z.string().min(1, '请输入用户名'),
   password: z.string().min(1, '请输入密码'),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
-
 export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [flipped, setFlipped] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { containerRef, outerGlow, innerGlow, borderGlow, handleMouseMove } = useMouseGlow();
 
-  const form = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema) as Resolver<LoginFormData>,
     defaultValues: { username: '', password: '' },
   });
 
-  const onSubmit = async (data: LoginForm) => {
+  const onSubmit = async (data: LoginFormData) => {
     setError('');
     setLoading(true);
     try {
@@ -49,91 +47,61 @@ export default function Login() {
     }
   };
 
-  return (
-    <div
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      className="relative min-h-screen flex items-center justify-center bg-[#fafafa] overflow-hidden"
-    >
-      {/* Glow layers */}
-      <AmbientGlow glow={outerGlow} />
-      <AmbientGlow glow={innerGlow} />
-      <GridOverlay />
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const tag = target.tagName.toLowerCase();
+    if (tag === 'input' || tag === 'button' || tag === 'label' || tag === 'textarea' || tag === 'select') return;
+    if (target.closest('input') || target.closest('button') || target.closest('label') || target.closest('select') || target.closest('textarea')) return;
+    setFlipped((v) => !v);
+  }, []);
 
-      {/* Login card */}
-      <div className="relative">
-        {/* Card border glow — padding:1px exposes the gradient as a visible border */}
+  return (
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <KineticGrid
+        background="#fafafa"
+        dotColor="#1a1a2e"
+        lineColor="#6688cc"
+        trailColor="#4477dd"
+        spacing={30}
+        radius={300}
+        strength={4}
+        trail={false}
+      />
+
+      <TiltedCard
+        containerWidth="auto"
+        containerHeight="auto"
+        scaleOnHover={1.02}
+        rotateAmplitude={8}
+        tooltipText={flipped ? '点击空白区域返回登录' : '点击空白区域查看介绍'}
+      >
         <motion.div
-          className="relative w-[460px] rounded-2xl"
-          style={{ backgroundImage: borderGlow, padding: '1px' }}
+          className="[transform-style:preserve-3d]"
+          style={{ height: 460 }}
+          animate={{ rotateY: flipped ? 180 : 0 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+          onClick={handleCardClick}
         >
-          <Card
-            className="w-full border-0 rounded-2xl bg-white/95 backdrop-blur-xl"
-            style={{
-              boxShadow:
-                '0 0 0 1px oklch(0 0 0 / 0.04), 0 4px 16px oklch(0 0 0 / 0.06), 0 12px 48px oklch(0 0 0 / 0.08), 0 24px 64px oklch(0 0 0 / 0.06)',
-            }}
+          {/* 正面 — 登录 */}
+          <div className="[backface-visibility:hidden] h-full">
+            <FrontFace
+              control={form.control}
+              handleSubmit={form.handleSubmit}
+              error={error}
+              loading={loading}
+              onSubmit={onSubmit}
+            />
+          </div>
+
+          {/* 背面 — 介绍 */}
+          <div
+            className="absolute inset-0 [backface-visibility:hidden]"
+            style={{ transform: 'rotateY(180deg)' }}
           >
-            <CardHeader className="pb-4 pt-8">
-              <CardTitle className="text-2xl text-center font-light tracking-wider text-[oklch(0.2 0 0)]">
-                FlowSync
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-8 pb-2">
-              <form id="login-form" onSubmit={form.handleSubmit(onSubmit)}>
-                <FieldGroup className="gap-5">
-                  <Controller
-                    name="username"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor="login-username" required>工号</FieldLabel>
-                        <Input
-                          {...field}
-                          id="login-username"
-                          aria-invalid={fieldState.invalid}
-                          placeholder="请输入用户名"
-                          className="h-10"
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                  <Controller
-                    name="password"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor="login-password" required>密码</FieldLabel>
-                        <Input
-                          {...field}
-                          id="login-password"
-                          type="password"
-                          aria-invalid={fieldState.invalid}
-                          placeholder="请输入密码"
-                          className="h-10"
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                </FieldGroup>
-                {error && <p className="text-sm text-destructive mt-3">{error}</p>}
-              </form>
-            </CardContent>
-            <div className="px-8 pb-8 pt-2">
-              <Button
-                type="submit"
-                form="login-form"
-                className="w-full h-10 transition-all duration-300 active:scale-[0.98]"
-                disabled={loading}
-              >
-                {loading ? '登录中...' : '登 录'}
-              </Button>
-            </div>
-          </Card>
+            <BackFace />
+          </div>
         </motion.div>
-      </div>
+      </TiltedCard>
     </div>
   );
 }
