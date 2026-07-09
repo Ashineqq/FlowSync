@@ -174,7 +174,7 @@ export default function Profile() {
               <div>
                 <p className="text-sm text-muted-foreground">当前状态</p>
                 <p className="text-sm font-medium">
-                  <Badge variant="outline" className="mt-1 bg-green-50 text-green-700 border-green-200">
+                  <Badge variant="outline" className="mt-1 bg-success-bg text-success border-success-border">
                     已配置
                   </Badge>
                 </p>

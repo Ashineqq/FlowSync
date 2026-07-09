@@ -139,8 +139,8 @@ export default function TaskLogList() {
               <TableCell className="font-medium">{log.taskTitle}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${log.progressPercent}%` }} />
+                  <div className="w-20 h-2 bg-progress-bg rounded-full overflow-hidden">
+                    <div className="h-full bg-progress-fill rounded-full" style={{ width: `${log.progressPercent}%` }} />
                   </div>
                   <span className="text-sm">{log.progressPercent}%</span>
                 </div>

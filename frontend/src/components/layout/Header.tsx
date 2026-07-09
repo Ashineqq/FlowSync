@@ -1,10 +1,12 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LogOut } from 'lucide-react';
+import { LogOut, Sun, Moon } from 'lucide-react';
 
 export default function Header() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -18,6 +20,9 @@ export default function Header() {
         </h2>
       </div>
       <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={toggleTheme} title={theme === 'light' ? '切换暗色模式' : '切换亮色模式'}>
+          {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        </Button>
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{user?.realName}</span>
           <Badge variant={user?.role === '负责人' ? 'default' : 'secondary'}>

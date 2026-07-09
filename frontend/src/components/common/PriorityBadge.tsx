@@ -6,9 +6,9 @@ interface PriorityBadgeProps {
 }
 
 const priorityConfig: Record<string, { label: string; className: string }> = {
-  '低': { label: '低', className: 'bg-gray-100 text-gray-700 hover:bg-gray-100' },
-  '中': { label: '中', className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100' },
-  '高': { label: '高', className: 'bg-red-100 text-red-700 hover:bg-red-100' },
+  '低': { label: '低', className: 'bg-priority-low-bg text-priority-low hover:bg-priority-low-bg' },
+  '中': { label: '中', className: 'bg-priority-medium-bg text-priority-medium hover:bg-priority-medium-bg' },
+  '高': { label: '高', className: 'bg-priority-high-bg text-priority-high hover:bg-priority-high-bg' },
 };
 
 export default function PriorityBadge({ priority }: PriorityBadgeProps) {

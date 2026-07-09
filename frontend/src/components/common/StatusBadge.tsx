@@ -6,9 +6,9 @@ interface StatusBadgeProps {
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  '未开始': { label: '未开始', className: 'bg-gray-100 text-gray-700 hover:bg-gray-100' },
-  '进行中': { label: '进行中', className: 'bg-blue-100 text-blue-700 hover:bg-blue-100' },
-  '已完成': { label: '已完成', className: 'bg-green-100 text-green-700 hover:bg-green-100' },
+  '未开始': { label: '未开始', className: 'bg-status-pending-bg text-status-pending hover:bg-status-pending-bg' },
+  '进行中': { label: '进行中', className: 'bg-status-progress-bg text-status-progress hover:bg-status-progress-bg' },
+  '已完成': { label: '已完成', className: 'bg-status-done-bg text-status-done hover:bg-status-done-bg' },
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {

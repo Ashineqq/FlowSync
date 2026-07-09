@@ -12,14 +12,10 @@ const features = [
 export default function BackFace() {
   return (
     <Card
-      className="w-[460px] h-full border-0 rounded-2xl bg-white/90 backdrop-blur-xl justify-center"
-      style={{
-        boxShadow:
-          '0 0 0 1px oklch(0 0 0 / 0.04), 0 4px 16px oklch(0 0 0 / 0.06), 0 12px 48px oklch(0 0 0 / 0.08), 0 24px 64px oklch(0 0 0 / 0.06)',
-      }}
+      className="w-[460px] h-full border border-border/40 rounded-2xl bg-card/90 backdrop-blur-xl justify-center shadow-xl"
     >
       <CardHeader className="pb-4 pt-8">
-        <CardTitle className="text-2xl text-center font-light tracking-wider text-[oklch(0.2 0 0)]">
+        <CardTitle className="text-2xl text-center font-light tracking-wider text-card-foreground">
           FlowSync
         </CardTitle>
       </CardHeader>
@@ -34,11 +30,11 @@ export default function BackFace() {
           {features.map((f) => (
             <div
               key={f.title}
-              className="rounded-lg bg-[oklch(0.55_0.18_260/0.06)] p-3 text-left"
+              className="rounded-lg bg-accent/50 p-3 text-left"
             >
               <Badge
                 variant="secondary"
-                className="mb-1.5 bg-[oklch(0.55_0.18_260/0.12)] text-[oklch(0.45_0.15_260)] hover:bg-[oklch(0.55_0.18_260/0.12)] text-[10px] px-1.5 py-0"
+                className="mb-1.5 bg-accent text-accent-foreground hover:bg-accent text-[10px] px-1.5 py-0"
               >
                 {f.title}
               </Badge>

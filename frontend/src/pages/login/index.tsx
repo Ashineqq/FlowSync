@@ -56,12 +56,12 @@ export default function Login() {
   }, []);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background">
       <KineticGrid
-        background="#fafafa"
-        dotColor="#1a1a2e"
-        lineColor="#6688cc"
-        trailColor="#4477dd"
+        background="transparent"
+        dotColor="var(--muted-foreground)"
+        lineColor="var(--border)"
+        trailColor="var(--primary)"
         spacing={30}
         radius={300}
         strength={4}

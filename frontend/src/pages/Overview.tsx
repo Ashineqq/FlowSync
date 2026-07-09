@@ -30,11 +30,11 @@ export default function Overview() {
   }
 
   const statCards = [
-    { title: '用户数', value: stats?.userCount || 0, icon: Users, color: 'text-blue-600' },
-    { title: '项目数', value: stats?.projectCount || 0, icon: FolderOpen, color: 'text-green-600' },
-    { title: '任务数', value: stats?.taskCount || 0, icon: ListTodo, color: 'text-orange-600' },
-    { title: '进度数', value: stats?.logCount || 0, icon: Activity, color: 'text-cyan-600' },
-    { title: '总结数', value: stats?.summaryCount || 0, icon: FileText, color: 'text-purple-600' },
+    { title: '用户数', value: stats?.userCount || 0, icon: Users, color: 'text-chart-1' },
+    { title: '项目数', value: stats?.projectCount || 0, icon: FolderOpen, color: 'text-chart-2' },
+    { title: '任务数', value: stats?.taskCount || 0, icon: ListTodo, color: 'text-chart-3' },
+    { title: '进度数', value: stats?.logCount || 0, icon: Activity, color: 'text-chart-4' },
+    { title: '总结数', value: stats?.summaryCount || 0, icon: FileText, color: 'text-chart-5' },
   ];
 
   return (

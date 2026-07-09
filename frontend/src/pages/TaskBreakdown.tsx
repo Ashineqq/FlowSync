@@ -142,7 +142,7 @@ export default function TaskBreakdown() {
                 </Button>
                 {!hasApiKey() && (
                   <Tooltip>
-                    <TooltipTrigger className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold leading-none cursor-help">
+                    <TooltipTrigger className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold leading-none cursor-help">
                       ?
                     </TooltipTrigger>
                     <TooltipContent>
