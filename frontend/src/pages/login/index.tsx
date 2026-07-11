@@ -76,8 +76,7 @@ export default function Login() {
         tooltipText={flipped ? '点击空白区域返回登录' : '点击空白区域查看介绍'}
       >
         <motion.div
-          className="[transform-style:preserve-3d]"
-          style={{ height: 460 }}
+          className="[transform-style:preserve-3d] h-[460px]"
           animate={{ rotateY: flipped ? 180 : 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 25 }}
           onClick={handleCardClick}
@@ -94,8 +93,7 @@ export default function Login() {
           </div>
 
           {/* 背面 — 介绍 */}
-          <div
-            className="absolute inset-0 [backface-visibility:hidden]"
+          <div className="absolute inset-0 [backface-visibility:hidden]"
             style={{ transform: 'rotateY(180deg)' }}
           >
             <BackFace />

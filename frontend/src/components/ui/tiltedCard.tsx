@@ -1,5 +1,6 @@
 import { useRef, type ReactNode } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const springValues = { damping: 30, stiffness: 100, mass: 2 };
 
@@ -60,7 +61,7 @@ export default function TiltedCard({
   return (
     <div
       ref={ref}
-      className={`relative flex flex-col items-center justify-center [perspective:800px] ${className}`}
+      className={cn('relative flex flex-col items-center justify-center [perspective:800px]', className)}
       style={{ height: containerHeight, width: containerWidth }}
       onMouseMove={handleMouse}
       onMouseEnter={handleMouseEnter}

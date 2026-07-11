@@ -231,8 +231,8 @@ interface Dot {
   return (
     <div
       ref={hostRef}
-      className="absolute inset-0 overflow-hidden"
-      style={{ background, cursor: "crosshair" }}
+      className="absolute inset-0 overflow-hidden cursor-crosshair"
+      style={{ background }}
     >
       <canvas
         ref={canvasRef}

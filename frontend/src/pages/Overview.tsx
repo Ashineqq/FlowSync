@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getOverview } from '@/api/overview';
 import type { OverviewStats } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { Users, FolderOpen, ListTodo, FileText, Activity } from 'lucide-react';
 
 export default function Overview() {
@@ -49,7 +50,7 @@ export default function Overview() {
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {card.title}
                 </CardTitle>
-                <Icon className={`h-4 w-4 ${card.color}`} />
+                <Icon className={cn('h-4 w-4', card.color)} />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{card.value}</div>

@@ -1,0 +1,9 @@
+@layer components {
+  .grid-overlay {
+    @apply pointer-events-none absolute inset-0 opacity-[0.025];
+    background-image:
+      linear-gradient(oklch(0 0 0 / 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, oklch(0 0 0 / 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+}

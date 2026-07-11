@@ -220,116 +220,116 @@ export default function ProjectList() {
             <CardContent>
               <form onSubmit={form.handleSubmit(onSubmit)} id="project-form">
                 <FieldGroup>
-              <Controller
-                name="name"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel required>项目名称</FieldLabel>
-                    <Input {...field} aria-invalid={fieldState.invalid} placeholder="请输入项目名称" />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="description"
-                control={form.control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel>项目描述</FieldLabel>
-                    <Textarea {...field} placeholder="请输入项目描述" />
-                  </Field>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <Controller
-                  name="status"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel required>状态</FieldLabel>
-                      <Select items={statusItems} value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>状态</SelectLabel>
-                            {statusItems.map((item) => (
-                              <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-                <Controller
-                  name="priority"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel required>优先级</FieldLabel>
-                      <Select items={priorityItems} value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>优先级</SelectLabel>
-                            {priorityItems.map((item) => (
-                              <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-              </div>
-              <Controller
-                name="ownerId"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel required>负责人</FieldLabel>
-                    <Select items={ownerItems} value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full"><SelectValue placeholder="请选择负责人" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>负责人</SelectLabel>
-                          {ownerItems.map((item) => (
-                            <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <Controller
-                  name="startDate"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel required>开始日期</FieldLabel>
-                      <DatePicker value={field.value} onChange={field.onChange} placeholder="选择开始日期" />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-                <Controller
-                  name="endDate"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel required>结束日期</FieldLabel>
-                      <DatePicker value={field.value} onChange={field.onChange} placeholder="选择结束日期" />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-              </div>
+                  <Controller
+                    name="name"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel required>项目名称</FieldLabel>
+                        <Input {...field} aria-invalid={fieldState.invalid} placeholder="请输入项目名称" />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="description"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Field>
+                        <FieldLabel>项目描述</FieldLabel>
+                        <Textarea {...field} placeholder="请输入项目描述" />
+                      </Field>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Controller
+                      name="status"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel required>状态</FieldLabel>
+                          <Select items={statusItems} value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>状态</SelectLabel>
+                                {statusItems.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="priority"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel required>优先级</FieldLabel>
+                          <Select items={priorityItems} value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>优先级</SelectLabel>
+                                {priorityItems.map((item) => (
+                                  <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
+                  <Controller
+                    name="ownerId"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel required>负责人</FieldLabel>
+                        <Select items={ownerItems} value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className="w-full"><SelectValue placeholder="请选择负责人" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>负责人</SelectLabel>
+                              {ownerItems.map((item) => (
+                                <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Controller
+                      name="startDate"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel required>开始日期</FieldLabel>
+                          <DatePicker value={field.value} onChange={field.onChange} placeholder="选择开始日期" />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="endDate"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel required>结束日期</FieldLabel>
+                          <DatePicker value={field.value} onChange={field.onChange} placeholder="选择结束日期" />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
                 </FieldGroup>
               </form>
             </CardContent>

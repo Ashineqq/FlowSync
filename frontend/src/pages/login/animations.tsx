@@ -1,6 +1,8 @@
 import { useCallback, useRef } from 'react';
 import { motion, useSpring, useMotionTemplate, type MotionValue } from 'framer-motion';
 
+import styles from './login.module.css';
+
 // ── Mouse glow hook ──
 // Encapsulates the two-layer spring + motion template for the login page glow effect.
 export function useMouseGlow() {
@@ -57,13 +59,6 @@ export function AmbientGlow({ glow }: GlowLayerProps) {
 
 export function GridOverlay() {
   return (
-    <div
-      className="pointer-events-none absolute inset-0 opacity-[0.025]"
-      style={{
-        backgroundImage:
-          'linear-gradient(oklch(0 0 0 / 0.05) 1px, transparent 1px), linear-gradient(90deg, oklch(0 0 0 / 0.05) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-      }}
-    />
+    <div className={styles.gridOverlay} />
   );
 }
