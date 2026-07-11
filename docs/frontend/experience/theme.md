@@ -5,11 +5,21 @@
 ```
 src/main.tsx                   # 用 <ThemeProvider> 包裹应用
 ├── src/hooks/useTheme.tsx     # 主题状态管理 + React Context
-├── src/index.css              # Tailwind v4 + CSS 变量（亮/暗两套 token）
+├── src/index.css              # Tailwind v4 + shadcn 官方主题变量
+├── src/semantic.css           # 业务语义颜色（与 shadcn 分离）
 ├── src/App.tsx                # 页面路由
 └── src/components/layout/
     └── Header.tsx             # 主题切换按钮（Sun/Moon）
 ```
+
+### CSS 文件职责分离
+
+| 文件 | 内容 | 来源 | 更换主题时 |
+|------|------|------|-----------|
+| `src/index.css` | shadcn 官方主题变量、Tailwind 引擎、@layer base | shadcn 初始化生成 | ✅ 直接覆盖 |
+| `src/semantic.css` | 业务语义颜色（success, status, priority, progress） | 项目自定义 | ❌ 不受影响 |
+
+### 各层职责
 
 | 层级 | 职责 |
 |------|------|
@@ -20,9 +30,9 @@ src/main.tsx                   # 用 <ThemeProvider> 包裹应用
 
 ---
 
-## 二、Tailwind CSS v4 配置方式
+## 二、CSS 文件入口结构
 
-本项目使用 **Tailwind CSS v4**（CSS-first 配置），无需传统的 `tailwind.config.js`。
+### 2.1 顶层声明
 
 `src/index.css` 顶部：
 
@@ -30,13 +40,23 @@ src/main.tsx                   # 用 <ThemeProvider> 包裹应用
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@import "./semantic.css";
 
 @custom-variant dark (&:is(.dark *));
 ```
 
-- `@import "tailwindcss"` — Tailwind v4 引擎（自动扫描 `@theme` 和模板中的 class）
-- `@custom-variant dark (&:is(.dark *))` — 定义 dark 变体：当祖先元素有 `.dark` class 时激活
-- `@tailwindcss/vite` 插件在 `vite.config.ts` 中启用
+### 2.2 各 import 的作用
+
+| @import | 用途 | 是否可删 |
+|---------|------|---------|
+| `"tailwindcss"` | Tailwind v4 引擎，自动扫描 `@theme` 和模板中的 class | ❌ 必须 |
+| `"tw-animate-css"` | 提供 shadcn 组件的进入/离开动画（`animate-in`, `fade-in-0`, `zoom-in-95` 等），在 dialog、popover、select、tooltip 等多个组件中使用 | ❌ 必须 |
+| `"shadcn/tailwind.css"` | shadcn 官方主题包，提供组件依赖的基础结构和默认 token | ❌ 必须 |
+| `"@fontsource-variable/geist"` | 加载 Geist Variable 字体，项目通过 `--font-sans: 'Geist Variable'` 引用，用作全局字体 | ❌ 必须 |
+| `"./semantic.css"` | **自定义业务语义颜色**（成功、状态、优先级、进度），与 shadcn 分离，更换主题时不受影响 | ✅ 项目新增 |
+
+### 2.3 `@tailwindcss/vite` 插件
 
 Vite 配置 (`vite.config.ts`)：
 
@@ -367,28 +387,76 @@ createRoot(document.getElementById('root')!).render(
 
 ## 十一、开发指南：添加新颜色
 
-1. 在 `src/index.css` 的 `:root {}` 中添加亮色值，在 `.dark {}` 中添加暗色值：
+### 11.1 业务语义颜色（写在 `src/semantic.css`）
+
+如果新增的颜色是**业务语义**颜色（如新的状态、优先级等），应当写在 `semantic.css` 中：
 
 ```css
-:root {
-  --my-color: oklch(...);   /* light */
-}
-.dark {
-  --my-color: oklch(...);   /* dark */
-}
-```
-
-2. 在 `@theme inline {}` 中注册映射：
-
-```css
+/* semantic.css */
 @theme inline {
   --color-my-color: var(--my-color);
+  --color-my-color-bg: var(--my-color-bg);
+}
+
+:root {
+  --my-color: oklch(...);
+  --my-color-bg: oklch(...);
+}
+
+.dark {
+  --my-color: oklch(...);
+  --my-color-bg: oklch(...);
 }
 ```
 
-3. 在组件中使用：
+### 11.2 主题基础色（写在 `src/index.css`）
+
+如果是要**替换 shadcn 基础色**（如修改 primary、background 等），则在 `index.css` 的 `:root` / `.dark` 中修改对应变量。
+
+### 11.3 组件中使用
+
+无论在哪个文件中定义，组件中都统一通过 Tailwind 语义类使用：
 
 ```tsx
 <div className="bg-my-color text-my-color-foreground">
 ```
+
+---
+
+## 十二、更换 shadcn 主题的注意事项
+
+### 目标
+
+更换 shadcn 官方主题时，业务语义颜色不受影响。
+
+### 步骤
+
+1. 用 shadcn CLI 重新初始化主题（`npx shadcn@latest init` 或在线主题生成器），**覆盖** `src/index.css`
+2. 检查覆盖后的 `index.css` 顶部是否有 `@import "./semantic.css"`，如无则手动补上
+3. `src/semantic.css` 中定义的业务颜色（success、status、priority、progress）**完全不受影响**
+4. 运行 `npx tsc --noEmit` 和 `npm run build` 验证
+
+### 分界清单
+
+| 会随主题被覆盖 | 不会受影响 |
+|--------------|-----------|
+| `--background`, `--foreground` 等 shadcn 基础色 | `--success`, `--success-bg`, `--success-border` |
+| `--primary`, `--secondary`, `--muted`, `--accent` | `--status-pending*`, `--status-progress*`, `--status-done*` |
+| `--border`, `--input`, `--ring` | `--priority-low*`, `--priority-medium*`, `--priority-high*` |
+| `--chart-1~5` | `--progress-bg`, `--progress-fill` |
+| `--sidebar*` 系列 | — |
+| `@layer base` 全局重置 | — |
+
+---
+
+## 十三、文件引用索引
+
+| 文件 | 内容 |
+|------|------|
+| `src/index.css` | Tailwind v4 引擎、shadcn 官方主题变量、`@custom-variant dark`、`@layer base` |
+| `src/semantic.css` | 业务语义颜色变量（success、status、priority、progress）的 `@theme inline` + `:root` + `.dark` |
+| `src/hooks/useTheme.tsx` | `ThemeProvider` + `useTheme` hook，localStorage 持久化 + 系统偏好回退 |
+| `src/main.tsx` | `<ThemeProvider>` 挂载点 |
+| `src/components/layout/Header.tsx` | 主题切换按钮（Sun/Moon 图标） |
+| `vite.config.ts` | `@tailwindcss/vite` 插件注册 |
 

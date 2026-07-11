@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "./semantic.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -69,23 +70,6 @@ body {
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --color-success: var(--success);
-  --color-success-bg: var(--success-bg);
-  --color-success-border: var(--success-border);
-  --color-status-pending: var(--status-pending);
-  --color-status-pending-bg: var(--status-pending-bg);
-  --color-status-progress: var(--status-progress);
-  --color-status-progress-bg: var(--status-progress-bg);
-  --color-status-done: var(--status-done);
-  --color-status-done-bg: var(--status-done-bg);
-  --color-priority-low: var(--priority-low);
-  --color-priority-low-bg: var(--priority-low-bg);
-  --color-priority-medium: var(--priority-medium);
-  --color-priority-medium-bg: var(--priority-medium-bg);
-  --color-priority-high: var(--priority-high);
-  --color-priority-high-bg: var(--priority-high-bg);
-  --color-progress-bg: var(--progress-bg);
-  --color-progress-fill: var(--progress-fill);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -128,23 +112,6 @@ body {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --success: oklch(0.6 0.18 145);
-  --success-bg: oklch(0.93 0.06 145);
-  --success-border: oklch(0.85 0.12 145);
-  --status-pending: oklch(0.45 0 0);
-  --status-pending-bg: oklch(0.96 0 0);
-  --status-progress: oklch(0.55 0.18 250);
-  --status-progress-bg: oklch(0.93 0.06 250);
-  --status-done: oklch(0.55 0.18 145);
-  --status-done-bg: oklch(0.93 0.06 145);
-  --priority-low: oklch(0.5 0 0);
-  --priority-low-bg: oklch(0.96 0 0);
-  --priority-medium: oklch(0.6 0.16 85);
-  --priority-medium-bg: oklch(0.95 0.06 85);
-  --priority-high: oklch(0.55 0.2 25);
-  --priority-high-bg: oklch(0.94 0.06 25);
-  --progress-bg: oklch(0.92 0 0);
-  --progress-fill: oklch(0.55 0.18 250);
 }
 
 .dark {
@@ -179,23 +146,6 @@ body {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  --success: oklch(0.65 0.15 145);
-  --success-bg: oklch(0.2 0.06 145);
-  --success-border: oklch(0.35 0.1 145);
-  --status-pending: oklch(0.7 0 0);
-  --status-pending-bg: oklch(0.2 0 0);
-  --status-progress: oklch(0.65 0.15 250);
-  --status-progress-bg: oklch(0.2 0.06 250);
-  --status-done: oklch(0.65 0.15 145);
-  --status-done-bg: oklch(0.2 0.06 145);
-  --priority-low: oklch(0.7 0 0);
-  --priority-low-bg: oklch(0.2 0 0);
-  --priority-medium: oklch(0.7 0.14 85);
-  --priority-medium-bg: oklch(0.25 0.06 85);
-  --priority-high: oklch(0.7 0.18 25);
-  --priority-high-bg: oklch(0.25 0.08 25);
-  --progress-bg: oklch(0.25 0 0);
-  --progress-fill: oklch(0.6 0.18 250);
 }
 
 @layer base {
