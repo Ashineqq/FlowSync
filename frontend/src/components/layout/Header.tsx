@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
@@ -7,9 +8,11 @@ import { LogOut, Sun, Moon } from 'lucide-react';
 export default function Header() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+    navigate('/login', { replace: true });
   };
 
   return (

@@ -10,6 +10,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+/**
+ * Standalone: reads user from sessionStorage.
+ * Safe to call outside React tree (e.g. router loaders).
+ */
+export function getAuthUser(): User | null {
+  try {
+    const userStr = sessionStorage.getItem('currentUser');
+    return userStr ? (JSON.parse(userStr) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
     const userStr = sessionStorage.getItem('currentUser');

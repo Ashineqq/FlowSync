@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, redirect } from 'react-router-dom';
 import { Toaster } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
+import { getAuthUser } from '@/hooks/useAuth';
 import Login from '@/pages/login';
+import Layout from '@/components/layout/Layout';
 import Overview from '@/pages/Overview';
 import ProjectList from '@/pages/ProjectList';
 import TaskBreakdown from '@/pages/TaskBreakdown';
@@ -10,59 +11,43 @@ import TaskLogList from '@/pages/TaskLogList';
 import SummaryList from '@/pages/SummaryList';
 import MemberList from '@/pages/MemberList';
 import Profile from '@/pages/Profile';
-import Sidebar from '@/components/layout/Sidebar';
-import Header from '@/components/layout/Header';
 
-function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-auto p-6">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+/** 全局鉴权：未登录重定向到 /login */
+function authLoader() {
+  const user = getAuthUser();
+  if (!user) return redirect('/login');
+  return null;
 }
 
-function AppRoutes() {
-  const { user } = useAuth();
+/** 路由表静态生成，只执行一次 */
+const router = createBrowserRouter([
+  { path: '/login', element: <Login /> },
+  {
+    path: '/',
+    element: <Layout />,
+    loader: authLoader,
+    children: [
+      { path: 'overview', element: <Overview /> },
+      { path: 'projects', element: <ProjectList /> },
+      { path: 'task-breakdown', element: <TaskBreakdown /> },
+      { path: 'tasks', element: <TaskList /> },
+      { path: 'task-logs', element: <TaskLogList /> },
+      { path: 'summaries', element: <SummaryList /> },
+      { path: 'members', element: <MemberList /> },
+      { path: 'profile', element: <Profile /> },
+    ],
+  },
+  {
+    path: '*',
+    loader: async () => redirect('/overview'),
+  },
+]);
 
-  if (!user) {
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    );
-  }
-
+export default function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/overview" element={<Overview />} />
-        <Route path="/projects" element={<ProjectList />} />
-        <Route path="/task-breakdown" element={<TaskBreakdown />} />
-        <Route path="/tasks" element={<TaskList />} />
-        <Route path="/task-logs" element={<TaskLogList />} />
-        <Route path="/summaries" element={<SummaryList />} />
-        <Route path="/members" element={<MemberList />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="*" element={<Navigate to="/overview" replace />} />
-      </Routes>
-    </Layout>
-  );
-}
-
-function App() {
-  return (
-    <BrowserRouter>
-      <AppRoutes />
+    <>
+      <RouterProvider router={router} />
       <Toaster position="top-right" richColors />
-    </BrowserRouter>
+    </>
   );
 }
-
-export default App;
