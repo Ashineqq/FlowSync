@@ -59,7 +59,7 @@ export default function SummaryList() {
   const onSubmit = (data: SummaryForm) => {
     saveMutation.mutate({
       projectId: parseInt(data.projectId),
-      taskId: data.taskId ? parseInt(data.taskId) : null,
+      taskId: data.taskId ? parseInt(data.taskId) : undefined,
       summaryType: data.summaryType,
       content: data.content,
       createdBy: user?.id,

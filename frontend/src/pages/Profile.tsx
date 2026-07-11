@@ -39,7 +39,7 @@ export default function Profile() {
   const onSubmit = async (data: PasswordForm) => {
     setLoading(true);
     try {
-      const res: any = await updatePassword({
+      await updatePassword({
         userId: user?.id || 0,
         oldPassword: data.oldPassword,
         newPassword: data.newPassword,

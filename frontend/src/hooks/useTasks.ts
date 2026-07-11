@@ -1,7 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { getTasks, saveTask, deleteTask } from '@/api';
 import { queryClient } from '@/lib/queryClient';
-import type { Task } from '@/types';
 import { toast } from 'sonner';
 
 export const taskKeys = {

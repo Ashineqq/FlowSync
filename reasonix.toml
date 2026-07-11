@@ -1,0 +1,2 @@
+[permissions]
+allow = ["Bash(pwd && ls)", "Edit", "Bash(cd /Users/test/Workspace/Projects/FlowSync/frontend && npm run build 2>&1)", "Bash(cd frontend && npx tsc --version 2>&1)", "Bash(cd frontend && npx tsc -b --showConfig 2>&1 | head -60)", "Bash(cd frontend && npx tsc -p tsconfig.app.json --showConfig 2>&1)"]

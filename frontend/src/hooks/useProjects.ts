@@ -1,7 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { getProjects, saveProject, deleteProject } from '@/api';
 import { queryClient } from '@/lib/queryClient';
-import type { Project } from '@/types';
 import { toast } from 'sonner';
 
 export const projectKeys = {

@@ -1,7 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { getSummaries, saveSummary } from '@/api';
 import { queryClient } from '@/lib/queryClient';
-import type { TaskSummary } from '@/types';
 import { toast } from 'sonner';
 
 export const summaryKeys = {

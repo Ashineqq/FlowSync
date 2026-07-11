@@ -85,7 +85,7 @@ export default function TaskList() {
     saveMutation.mutate({
       ...data,
       projectId: parseInt(data.projectId),
-      assigneeId: data.assigneeId ? parseInt(data.assigneeId) : null,
+      assigneeId: data.assigneeId ? parseInt(data.assigneeId) : undefined,
       id: editingTask?.id,
     });
   };

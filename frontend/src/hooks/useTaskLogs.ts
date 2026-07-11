@@ -1,7 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { getTaskLogs, saveTaskLog } from '@/api';
 import { queryClient } from '@/lib/queryClient';
-import type { TaskLog } from '@/types';
 import { toast } from 'sonner';
 
 export const logKeys = {
