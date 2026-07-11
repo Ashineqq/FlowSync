@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSyncExternalStore } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { getProjects } from '@/api/project';
-import { importTaskPlan } from '@/api/ai';
+import { getProjects, importTaskPlan } from '@/api';
 import { getState, subscribe, startStream, resetState, setSelectedItems } from '@/store/taskBreakdown';
 import type { Project } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -44,8 +43,8 @@ export default function TaskBreakdown() {
 
   const loadProjects = async () => {
     try {
-      const res: any = await getProjects();
-      if (res.success) setProjects(res.data || []);
+      const data = await getProjects();
+      setProjects(data || []);
     } catch (err) {
       console.error('加载项目失败:', err);
     }
@@ -62,17 +61,13 @@ export default function TaskBreakdown() {
     setImporting(true);
     try {
       const items = stream.selectedItems.map((i) => stream.planItems[i]);
-      const res: any = await importTaskPlan({
+      await importTaskPlan({
         projectId: parseInt(stream.projectId),
         creatorId: user?.id || 0,
         items,
       });
-      if (res.success) {
-        toast.success('任务导入成功', { description: `已导入 ${stream.selectedItems.length} 个任务` });
-        resetState();
-      } else {
-        toast.error('导入失败', { description: res.message });
-      }
+      toast.success('任务导入成功', { description: `已导入 ${stream.selectedItems.length} 个任务` });
+      resetState();
     } catch (err) {
       toast.error('导入失败', { description: '网络错误，请重试' });
     } finally {

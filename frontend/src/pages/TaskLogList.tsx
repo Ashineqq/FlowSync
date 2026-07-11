@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
-import { getTaskLogs, saveTaskLog } from '@/api/taskLog';
-import { getTasks } from '@/api/task';
-import type { TaskLog, Task } from '@/types';
+import { useTaskLogs, useSaveTaskLog } from '@/hooks/useTaskLogs';
+import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,7 +19,6 @@ import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Field, FieldLabel, FieldError, FieldGroup } from '@/components/ui/field';
-import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 import { TableEmptyRow } from '@/components/common/TableEmptyRow';
 
@@ -37,9 +35,8 @@ type LogForm = z.infer<typeof logSchema>;
 
 export default function TaskLogList() {
   const { user } = useAuth();
-  const [logs, setLogs] = useState<TaskLog[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: logs = [], isLoading } = useTaskLogs();
+  const { data: tasks = [] } = useTasks();
   const [filterTaskId, setFilterTaskId] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -48,40 +45,18 @@ export default function TaskLogList() {
     defaultValues: { taskId: '', progressPercent: '', content: '' },
   });
 
-  useEffect(() => { loadData(); }, []);
+  const saveMutation = useSaveTaskLog(() => {
+    setDialogOpen(false);
+    form.reset();
+  });
 
-  const loadData = async () => {
-    try {
-      const [logRes, taskRes]: any[] = await Promise.all([getTaskLogs(), getTasks()]);
-      if (logRes.success) setLogs(logRes.data || []);
-      if (taskRes.success) setTasks(taskRes.data || []);
-    } catch (err) {
-      console.error('加载数据失败:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onSubmit = async (data: LogForm) => {
-    try {
-      const payload = {
-        taskId: parseInt(data.taskId),
-        progressPercent: parseInt(data.progressPercent),
-        content: data.content,
-        operatorId: user?.id,
-      };
-      const res: any = await saveTaskLog(payload);
-      if (res.success) {
-        toast.success('创建成功');
-        setDialogOpen(false);
-        form.reset();
-        loadData();
-      } else {
-        toast.error('创建失败', { description: res.message });
-      }
-    } catch (err) {
-      toast.error('创建失败', { description: '网络错误，请重试' });
-    }
+  const onSubmit = (data: LogForm) => {
+    saveMutation.mutate({
+      taskId: parseInt(data.taskId),
+      progressPercent: parseInt(data.progressPercent),
+      content: data.content,
+      operatorId: user?.id,
+    });
   };
 
   const filteredLogs = filterTaskId === 'all'
@@ -94,7 +69,7 @@ export default function TaskLogList() {
   ];
   const taskFormItems = tasks.map((t) => ({ label: t.title, value: t.id.toString() }));
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex items-center justify-center h-64">加载中...</div>;
   }
 
@@ -211,7 +186,7 @@ export default function TaskLogList() {
             <CardFooter>
               <div className="flex justify-end gap-2 w-full">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
-                <Button type="submit" form="log-form">保存</Button>
+                <Button type="submit" form="log-form" disabled={saveMutation.isPending}>保存</Button>
               </div>
             </CardFooter>
           </Card>

@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
-import { getProjects, saveProject, deleteProject } from '@/api/project';
-import { getUsers } from '@/api/user';
-import type { Project, User } from '@/types';
+import { useProjects, useSaveProject, useDeleteProject } from '@/hooks/useProjects';
+import { useUsers } from '@/hooks/useUsers';
+import type { Project } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,7 +23,6 @@ import { Field, FieldLabel, FieldError, FieldGroup } from '@/components/ui/field
 import StatusBadge from '@/components/common/StatusBadge';
 import PriorityBadge from '@/components/common/PriorityBadge';
 import { DatePicker } from '@/components/common/DatePicker';
-import { toast } from 'sonner';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { TableEmptyRow } from '@/components/common/TableEmptyRow';
@@ -60,9 +59,8 @@ type ProjectForm = z.infer<typeof projectSchema>;
 
 export default function ProjectList() {
   const { isLeader } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: projects = [], isLoading } = useProjects();
+  const { data: users = [] } = useUsers();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
@@ -75,62 +73,31 @@ export default function ProjectList() {
     },
   });
 
-  useEffect(() => { loadData(); }, []);
+  const saveMutation = useSaveProject(() => {
+    setDialogOpen(false);
+    setEditingProject(null);
+    form.reset();
+  });
 
-  const loadData = async () => {
-    try {
-      const [projRes, userRes]: any[] = await Promise.all([getProjects(), getUsers()]);
-      if (projRes.success) setProjects(projRes.data || []);
-      if (userRes.success) setUsers(userRes.data || []);
-    } catch (err) {
-      console.error('加载数据失败:', err);
-    } finally {
-      setLoading(false);
-    }
+  const deleteMutation = useDeleteProject(() => {
+    setDeleteConfirmId(null);
+  });
+
+  const onSubmit = (data: ProjectForm) => {
+    saveMutation.mutate({
+      ...data,
+      ownerId: parseInt(data.ownerId),
+      id: editingProject?.id,
+    });
   };
 
-  const onSubmit = async (data: ProjectForm) => {
-    try {
-      const payload = {
-        ...data,
-        ownerId: parseInt(data.ownerId),
-        id: editingProject?.id,
-      };
-      const res: any = await saveProject(payload);
-      if (res.success) {
-        toast.success(editingProject ? '更新成功' : '创建成功');
-        setDialogOpen(false);
-        setEditingProject(null);
-        form.reset();
-        loadData();
-      } else {
-        toast.error('保存失败', { description: res.message });
-      }
-    } catch (err) {
-      toast.error('保存失败', { description: '网络错误，请重试' });
-    }
-  };
-
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     setDeleteConfirmId(id);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (deleteConfirmId === null) return;
-    try {
-      const res: any = await deleteProject(deleteConfirmId);
-      if (res.success) {
-        toast.success('删除成功');
-        setDeleteConfirmId(null);
-        loadData();
-      } else {
-        toast.error('删除失败', { description: res.message });
-        setDeleteConfirmId(null);
-      }
-    } catch (err) {
-      toast.error('删除失败', { description: '网络错误，请重试' });
-      setDeleteConfirmId(null);
-    }
+    deleteMutation.mutate(deleteConfirmId);
   };
 
   const openEditDialog = (project: Project) => {
@@ -155,7 +122,7 @@ export default function ProjectList() {
 
   const ownerItems = users.map((u) => ({ label: u.realName, value: u.id.toString() }));
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex items-center justify-center h-64">加载中...</div>;
   }
 
@@ -336,7 +303,7 @@ export default function ProjectList() {
             <CardFooter>
               <div className="flex justify-end gap-2 w-full">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
-                <Button type="submit" form="project-form">保存</Button>
+                <Button type="submit" form="project-form" disabled={saveMutation.isPending}>保存</Button>
               </div>
             </CardFooter>
           </Card>

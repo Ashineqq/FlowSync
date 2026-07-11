@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
-import { getSummaries, saveSummary } from '@/api/summary';
-import { getProjects } from '@/api/project';
-import { getTasks } from '@/api/task';
-import type { TaskSummary, Project, Task } from '@/types';
+import { useSummaries, useSaveSummary } from '@/hooks/useSummaries';
+import { useProjects } from '@/hooks/useProjects';
+import { useTasks } from '@/hooks/useTasks';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -20,7 +19,6 @@ import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Field, FieldLabel, FieldError, FieldGroup } from '@/components/ui/field';
-import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import { TableEmptyRow } from '@/components/common/TableEmptyRow';
@@ -41,10 +39,9 @@ type SummaryForm = z.infer<typeof summarySchema>;
 
 export default function SummaryList() {
   const { user } = useAuth();
-  const [summaries, setSummaries] = useState<TaskSummary[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: summaries = [], isLoading } = useSummaries();
+  const { data: projects = [] } = useProjects();
+  const { data: tasks = [] } = useTasks();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const form = useForm<SummaryForm>({
@@ -54,42 +51,19 @@ export default function SummaryList() {
 
   const watchProjectId = form.watch('projectId');
 
-  useEffect(() => { loadData(); }, []);
+  const saveMutation = useSaveSummary(() => {
+    setDialogOpen(false);
+    form.reset();
+  });
 
-  const loadData = async () => {
-    try {
-      const [sumRes, projRes, taskRes]: any[] = await Promise.all([getSummaries(), getProjects(), getTasks()]);
-      if (sumRes.success) setSummaries(sumRes.data || []);
-      if (projRes.success) setProjects(projRes.data || []);
-      if (taskRes.success) setTasks(taskRes.data || []);
-    } catch (err) {
-      console.error('加载数据失败:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onSubmit = async (data: SummaryForm) => {
-    try {
-      const payload = {
-        projectId: parseInt(data.projectId),
-        taskId: data.taskId ? parseInt(data.taskId) : null,
-        summaryType: data.summaryType,
-        content: data.content,
-        createdBy: user?.id,
-      };
-      const res: any = await saveSummary(payload);
-      if (res.success) {
-        toast.success('创建成功');
-        setDialogOpen(false);
-        form.reset();
-        loadData();
-      } else {
-        toast.error('创建失败', { description: res.message });
-      }
-    } catch (err) {
-      toast.error('创建失败', { description: '网络错误，请重试' });
-    }
+  const onSubmit = (data: SummaryForm) => {
+    saveMutation.mutate({
+      projectId: parseInt(data.projectId),
+      taskId: data.taskId ? parseInt(data.taskId) : null,
+      summaryType: data.summaryType,
+      content: data.content,
+      createdBy: user?.id,
+    });
   };
 
   const filteredTasks = watchProjectId
@@ -99,7 +73,7 @@ export default function SummaryList() {
   const projectItems = projects.map((p) => ({ label: p.name, value: p.id.toString() }));
   const taskItems = filteredTasks.map((t) => ({ label: t.title, value: t.id.toString() }));
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex items-center justify-center h-64">加载中...</div>;
   }
 
@@ -232,7 +206,7 @@ export default function SummaryList() {
             <CardFooter>
               <div className="flex justify-end gap-2 w-full">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
-                <Button type="submit" form="summary-form">保存</Button>
+                <Button type="submit" form="summary-form" disabled={saveMutation.isPending}>保存</Button>
               </div>
             </CardFooter>
           </Card>

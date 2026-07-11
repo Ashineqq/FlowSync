@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { updatePassword } from '@/api/user';
+import { updatePassword } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,12 +44,8 @@ export default function Profile() {
         oldPassword: data.oldPassword,
         newPassword: data.newPassword,
       });
-      if (res.success) {
-        toast.success('密码修改成功');
-        form.reset();
-      } else {
-        toast.error('修改失败', { description: res.message });
-      }
+      toast.success('密码修改成功');
+      form.reset();
     } catch {
       toast.error('修改失败', { description: '网络错误，请重试' });
     } finally {
@@ -59,14 +55,8 @@ export default function Profile() {
 
   const handleSaveApiKey = () => {
     const key = apiKeyInput.trim();
-    if (!key) {
-      toast.error('请输入 API Key');
-      return;
-    }
-    if (!key.startsWith('sk-')) {
-      toast.error('API Key 格式不正确，应以 sk- 开头');
-      return;
-    }
+    if (!key) { toast.error('请输入 API Key'); return; }
+    if (!key.startsWith('sk-')) { toast.error('API Key 格式不正确，应以 sk- 开头'); return; }
     setApiKey(key);
     setApiKeyInput('');
     setShowApiKeyInput(false);
@@ -184,12 +174,8 @@ export default function Profile() {
                 <p className="font-mono text-sm">{maskApiKey(getApiKey())}</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowApiKeyInput(true)}>
-                  修改
-                </Button>
-                <Button variant="destructive" size="sm" onClick={handleRemoveApiKey}>
-                  移除
-                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowApiKeyInput(true)}>修改</Button>
+                <Button variant="destructive" size="sm" onClick={handleRemoveApiKey}>移除</Button>
               </div>
             </div>
           )}
@@ -206,13 +192,9 @@ export default function Profile() {
                 />
               </Field>
               <div className="flex gap-2">
-                <Button onClick={handleSaveApiKey}>
-                  {hasKey ? '更新' : '保存'}
-                </Button>
+                <Button onClick={handleSaveApiKey}>{hasKey ? '更新' : '保存'}</Button>
                 {showApiKeyInput && (
-                  <Button variant="outline" onClick={() => { setShowApiKeyInput(false); setApiKeyInput(''); }}>
-                    取消
-                  </Button>
+                  <Button variant="outline" onClick={() => { setShowApiKeyInput(false); setApiKeyInput(''); }}>取消</Button>
                 )}
               </div>
             </div>

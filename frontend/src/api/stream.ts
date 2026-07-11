@@ -1,32 +1,6 @@
 import { getApiKey } from '@/lib/api-key';
-import request from './request';
 
-export function getTaskSuggestion(data: {
-  projectName: string;
-  taskTitle: string;
-  taskDescription: string;
-}) {
-  return request.post('/ai/task-suggestion', data);
-}
-
-export function getTaskPlan(data: {
-  projectId: number;
-  operatorId: number;
-  projectName: string;
-  goal: string;
-  description: string;
-}) {
-  return request.post('/ai/task-plan', data);
-}
-
-export function importTaskPlan(data: {
-  projectId: number;
-  creatorId: number;
-  items: any[];
-}) {
-  return request.post('/ai/task-plan/import', data);
-}
-
+/** SSE 流式请求（不使用 axios，直接 fetch） */
 export async function streamTaskPlan(
   data: { projectName: string; goal: string; description: string },
   onThinking: (text: string) => void,
@@ -40,13 +14,8 @@ export async function streamTaskPlan(
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   const apiKey = getApiKey();
-  const hasKey = !!apiKey;
-  console.log('[AI Stream] 前端 API Key:', hasKey ? `已找到 (长度 ${apiKey.length})` : '未配置 (localStorage 中无 key)');
-  if (hasKey) {
+  if (apiKey) {
     headers['x-deepseek-api-key'] = apiKey;
-    console.log('[AI Stream] 已添加 x-deepseek-api-key 请求头');
-  } else {
-    console.log('[AI Stream] 未发送 API Key 请求头，依赖后端环境变量');
   }
 
   const response = await fetch(url, {
@@ -92,7 +61,9 @@ export async function streamTaskPlan(
           } else if (msg.type === 'error') {
             onError(msg.content);
           }
-        } catch {}
+        } catch {
+          // ignore parse errors
+        }
       }
     }
   }

@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { login as loginApi } from '@/api/auth';
+import { login as loginApi } from '@/api';
 import KineticGrid from '@/components/common/KineticGrid';
 import TiltedCard from '@/components/ui/tiltedCard';
 import FrontFace from './FrontFace';
@@ -33,15 +33,11 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const res: any = await loginApi(data.username, data.password);
-      if (res.success && res.data) {
-        login(res.data.user, res.data.token);
-        navigate('/overview');
-      } else {
-        setError(res.message || '登录失败');
-      }
+      const result = await loginApi(data.username, data.password);
+      login(result.user, result.token);
+      navigate('/overview');
     } catch (err: any) {
-      setError(err.response?.data?.message || '登录失败，请重试');
+      setError(err.message || '登录失败，请重试');
     } finally {
       setLoading(false);
     }

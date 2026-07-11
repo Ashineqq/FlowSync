@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { getUsers, createUser, updateUser } from '@/api/user';
+import { useUsers, useCreateUser, useUpdateUser } from '@/hooks/useUsers';
 import type { User } from '@/types';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -38,8 +37,7 @@ type UserForm = z.infer<typeof userSchema>;
 
 export default function MemberList() {
   const { user: currentUser, isLeader } = useAuth();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: users = [], isLoading } = useUsers();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
@@ -48,52 +46,29 @@ export default function MemberList() {
     defaultValues: { username: '', realName: '', role: '成员', password: '' },
   });
 
-  useEffect(() => { loadUsers(); }, []);
+  const createMutation = useCreateUser(() => {
+    setDialogOpen(false);
+    form.reset();
+  });
 
-  const loadUsers = async () => {
-    try {
-      const res: any = await getUsers();
-      if (res.success) setUsers(res.data || []);
-    } catch (err) {
-      console.error('加载用户列表失败:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const updateMutation = useUpdateUser(() => {
+    setDialogOpen(false);
+    setEditingUser(null);
+    form.reset();
+  });
 
-  const onSubmit = async (data: UserForm) => {
-    try {
-      if (editingUser) {
-        const payload: any = { realName: data.realName, role: data.role };
-        if (data.password) payload.password = data.password;
-        const res: any = await updateUser(editingUser.id, payload);
-        if (res.success) {
-          toast.success('更新成功');
-          setDialogOpen(false);
-          setEditingUser(null);
-          form.reset();
-          loadUsers();
-        } else {
-          toast.error('更新失败', { description: res.message });
-        }
-      } else {
-        const res: any = await createUser({
-          username: data.username,
-          realName: data.realName,
-          role: data.role,
-          password: data.password || '123456',
-        });
-        if (res.success) {
-          toast.success('创建成功', { description: '默认密码：123456' });
-          setDialogOpen(false);
-          form.reset();
-          loadUsers();
-        } else {
-          toast.error('创建失败', { description: res.message });
-        }
-      }
-    } catch {
-      toast.error('操作失败', { description: '网络错误，请重试' });
+  const onSubmit = (data: UserForm) => {
+    if (editingUser) {
+      const payload: any = { realName: data.realName, role: data.role };
+      if (data.password) payload.password = data.password;
+      updateMutation.mutate({ userId: editingUser.id, data: payload });
+    } else {
+      createMutation.mutate({
+        username: data.username,
+        realName: data.realName,
+        role: data.role,
+        password: data.password || '123456',
+      });
     }
   };
 
@@ -115,8 +90,9 @@ export default function MemberList() {
   };
 
   const canEdit = (u: User) => isLeader || u.id === currentUser?.id;
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex items-center justify-center h-64">加载中...</div>;
   }
 
@@ -234,7 +210,7 @@ export default function MemberList() {
             <CardFooter>
               <div className="flex justify-end gap-2 w-full">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
-                <Button type="submit" form="member-form">保存</Button>
+                <Button type="submit" form="member-form" disabled={isPending}>保存</Button>
               </div>
             </CardFooter>
           </Card>

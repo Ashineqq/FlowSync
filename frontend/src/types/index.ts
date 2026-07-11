@@ -6,6 +6,14 @@ export interface User {
   createTime?: string;
 }
 
+/** 后端统一响应结构 */
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  code?: number;
+  message?: string;
+  data: T;
+}
+
 export interface Project {
   id: number;
   name: string;

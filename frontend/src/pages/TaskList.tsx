@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
-import { getTasks, saveTask, deleteTask } from '@/api/task';
-import { getProjects } from '@/api/project';
-import { getUsers } from '@/api/user';
-import type { Task, Project, User } from '@/types';
+import { useProjects } from '@/hooks/useProjects';
+import { useTasks, useSaveTask, useDeleteTask } from '@/hooks/useTasks';
+import { useUsers } from '@/hooks/useUsers';
+import type { Task } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -55,10 +55,9 @@ type TaskForm = z.infer<typeof taskSchema>;
 
 export default function TaskList() {
   const { user, isLeader } = useAuth();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: tasks = [], isLoading } = useTasks();
+  const { data: projects = [] } = useProjects();
+  const { data: users = [] } = useUsers();
   const [filterProjectId, setFilterProjectId] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -72,78 +71,42 @@ export default function TaskList() {
     },
   });
 
-  useEffect(() => { loadData(); }, []);
+  const saveMutation = useSaveTask(() => {
+    setDialogOpen(false);
+    setEditingTask(null);
+    form.reset();
+  });
 
-  const loadData = async () => {
-    try {
-      const [taskRes, projRes, userRes]: any[] = await Promise.all([getTasks(), getProjects(), getUsers()]);
-      if (taskRes.success) setTasks(taskRes.data || []);
-      if (projRes.success) setProjects(projRes.data || []);
-      if (userRes.success) setUsers(userRes.data || []);
-    } catch (err) {
-      console.error('加载数据失败:', err);
-    } finally {
-      setLoading(false);
-    }
+  const deleteMutation = useDeleteTask(() => {
+    setDeleteConfirmId(null);
+  });
+
+  const onSubmit = (data: TaskForm) => {
+    saveMutation.mutate({
+      ...data,
+      projectId: parseInt(data.projectId),
+      assigneeId: data.assigneeId ? parseInt(data.assigneeId) : null,
+      id: editingTask?.id,
+    });
   };
 
-  const onSubmit = async (data: TaskForm) => {
-    try {
-      const payload = {
-        ...data,
-        projectId: parseInt(data.projectId),
-        assigneeId: data.assigneeId ? parseInt(data.assigneeId) : null,
-        id: editingTask?.id,
-      };
-      const res: any = await saveTask(payload);
-      if (res.success) {
-        toast.success(editingTask ? '更新成功' : '创建成功');
-        setDialogOpen(false);
-        setEditingTask(null);
-        form.reset();
-        loadData();
-      } else {
-        toast.error('保存失败', { description: res.message });
-      }
-    } catch (err) {
-      toast.error('保存失败', { description: '网络错误，请重试' });
-    }
-  };
-
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     setDeleteConfirmId(id);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = () => {
     if (deleteConfirmId === null) return;
-    try {
-      const res: any = await deleteTask(deleteConfirmId);
-      if (res.success) {
-        toast.success('删除成功');
-        setDeleteConfirmId(null);
-        loadData();
-      } else {
-        toast.error('删除失败', { description: res.message });
-        setDeleteConfirmId(null);
-      }
-    } catch (err) {
-      toast.error('删除失败', { description: '网络错误，请重试' });
-      setDeleteConfirmId(null);
-    }
+    deleteMutation.mutate(deleteConfirmId);
   };
 
-  const handleStatusChange = async (task: Task, newStatus: string) => {
-    try {
-      const res: any = await saveTask({ ...task, status: newStatus });
-      if (res.success) {
-        toast.success('状态更新成功');
-        loadData();
-      } else {
-        toast.error('状态更新失败', { description: res.message });
+  const handleStatusChange = (task: Task, newStatus: string) => {
+    saveMutation.mutate(
+      { ...task, status: newStatus },
+      {
+        onSuccess: () => toast.success('状态更新成功'),
+        onError: () => toast.error('状态更新失败'),
       }
-    } catch (err) {
-      toast.error('状态更新失败', { description: '网络错误，请重试' });
-    }
+    );
   };
 
   const openEditDialog = (task: Task) => {
@@ -179,7 +142,7 @@ export default function TaskList() {
   const projectFormItems = projects.map((p) => ({ label: p.name, value: p.id.toString() }));
   const assigneeItems = users.map((u) => ({ label: u.realName, value: u.id.toString() }));
 
-  if (loading) {
+  if (isLoading) {
     return <div className="flex items-center justify-center h-64">加载中...</div>;
   }
 
@@ -393,7 +356,7 @@ export default function TaskList() {
             <CardFooter>
               <div className="flex justify-end gap-2 w-full">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
-                <Button type="submit" form="task-form">保存</Button>
+                <Button type="submit" form="task-form" disabled={saveMutation.isPending}>保存</Button>
               </div>
             </CardFooter>
           </Card>
